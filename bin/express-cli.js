@@ -156,24 +156,24 @@ function createApplication(name, path) {
 
   mkdir(path, function() {
     mkdir(path + '/public', function() {
-      mkdir(path + '/public/javascripts')
-      mkdir(path + '/public/images')
-      mkdir(path + '/public/stylesheets', function() {
+      mkdir(path + '/public/js')
+      mkdir(path + '/public/img')
+      mkdir(path + '/public/css', function() {
         switch (program.css) {
           case 'less':
-            copyTemplate('css/style.less', path + '/public/stylesheets/style.less')
+            copyTemplate('css/style.less', path + '/public/css/style.less')
             break
           case 'stylus':
-            copyTemplate('css/style.styl', path + '/public/stylesheets/style.styl')
+            copyTemplate('css/style.styl', path + '/public/css/style.styl')
             break
           case 'compass':
-            copyTemplate('css/style.scss', path + '/public/stylesheets/style.scss')
+            copyTemplate('css/style.scss', path + '/public/css/style.scss')
             break
           case 'sass':
-            copyTemplate('css/style.sass', path + '/public/stylesheets/style.sass')
+            copyTemplate('css/style.sass', path + '/public/css/style.sass')
             break
           default:
-            copyTemplate('css/style.css', path + '/public/stylesheets/style.css')
+            copyTemplate('css/style.css', path + '/public/css/style.css')
             break
         }
         complete()
@@ -182,7 +182,6 @@ function createApplication(name, path) {
 
     mkdir(path + '/routes', function() {
       copyTemplate('js/routes/index.js', path + '/routes/index.js')
-      copyTemplate('js/routes/users.js', path + '/routes/users.js')
       complete()
     })
 
