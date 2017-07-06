@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 
-var ejs = require('ejs')
-var fs = require('fs')
-var mkdirp = require('mkdirp')
-var path = require('path')
-var program = require('commander')
-var readline = require('readline')
-var sortedObject = require('sorted-object')
-var util = require('util')
+const ejs = require('ejs')
+const fs = require('fs')
+const mkdirp = require('mkdirp')
+const path = require('path')
+const program = require('commander')
+const readline = require('readline')
+const sortedObject = require('sorted-object')
+const { format } = require('util')
 
-var MODE_0666 = parseInt('0666', 8)
-var MODE_0755 = parseInt('0755', 8)
+const MODE_0666 = parseInt('0666', 8)
+const MODE_0755 = parseInt('0755', 8)
 
-var _exit = process.exit
-var pkg = require('../package.json')
+const _exit = process.exit
+const pkg = require('../package.json')
 
-var version = pkg.version
+const version = pkg.version
 
 // Re-assign process.exit because of commander
 // TODO: Switch to a different command framework
@@ -66,11 +66,11 @@ if (!exit.exited) {
  */
 
 function around(obj, method, fn) {
-  var old = obj[method]
+  const old = obj[method]
 
   obj[method] = function() {
-    var args = new Array(arguments.length)
-    for (var i = 0; i < args.length; i++) args[i] = arguments[i]
+    const args = new Array(arguments.length)
+    for (let i = 0; i < args.length; i++) args[i] = arguments[i]
     return fn.call(this, old, args)
   }
 }
@@ -80,7 +80,7 @@ function around(obj, method, fn) {
  */
 
 function before(obj, method, fn) {
-  var old = obj[method]
+  const old = obj[method]
 
   obj[method] = function() {
     fn.call(this)
@@ -93,7 +93,7 @@ function before(obj, method, fn) {
  */
 
 function confirm(msg, callback) {
-  var rl = readline.createInterface({
+  const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
@@ -120,13 +120,13 @@ function copyTemplate(from, to) {
  */
 
 function createApplication(name, path) {
-  var wait = 5
+  let wait = 5
 
   console.log()
 
   function complete() {
     if (--wait) return
-    var prompt = launchedFromCmd() ? '>' : '$'
+    const prompt = launchedFromCmd() ? '>' : '$'
 
     console.log()
     console.log('   install dependencies:')
@@ -144,8 +144,8 @@ function createApplication(name, path) {
   }
 
   // JavaScript
-  var app = loadTemplate('js/app.js')
-  var www = loadTemplate('js/www')
+  const app = loadTemplate('js/app.js')
+  const www = loadTemplate('js/www')
 
   // App name
   www.locals.name = name
@@ -266,7 +266,7 @@ function createApplication(name, path) {
     }
 
     // package.json
-    var pkg = {
+    const pkg = {
       name: name,
       version: '0.0.0',
       private: true,
@@ -384,8 +384,8 @@ function exit(code) {
     if (!(draining--)) _exit(code)
   }
 
-  var draining = 0
-  var streams = [process.stdout, process.stderr]
+  let draining = 0
+  const streams = [process.stdout, process.stderr]
 
   exit.exited = true
 
@@ -412,8 +412,8 @@ function launchedFromCmd() {
  */
 
 function loadTemplate(name) {
-  var contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
-  var locals = Object.create(null)
+  const contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
+  const locals = Object.create(null)
 
   function render() {
     return ejs.render(contents, locals)
@@ -431,10 +431,10 @@ function loadTemplate(name) {
 
 function main() {
   // Path
-  var destinationPath = program.args.shift() || '.'
+  const destinationPath = program.args.shift() || '.'
 
   // App name
-  var appName = createAppName(path.resolve(destinationPath)) || 'hello-world'
+  const appName = createAppName(path.resolve(destinationPath)) || 'hello-world'
 
   // View engine
   if (program.view === undefined) {
@@ -493,7 +493,7 @@ function mkdir(path, fn) {
 
 function renamedOption(originalName, newName) {
   return function(val) {
-    warning(util.format("option `%s' has been renamed to `%s'", originalName, newName))
+    warning(format("option `%s' has been renamed to `%s'", originalName, newName))
     return val
   }
 }
