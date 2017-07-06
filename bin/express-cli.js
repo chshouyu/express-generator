@@ -347,6 +347,7 @@ function createApplication(name, path) {
     copyTemplate('js/nodemon.json', path + '/nodemon.json')
     copyTemplate('js/env', path + '/.env')
     copyTemplate('js/editorconfig', path + '/.editorconfig')
+    copyTemplate('js/nvmrc', path + '/.nvmrc')
 
     complete()
   })
