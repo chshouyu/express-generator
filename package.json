@@ -46,7 +46,7 @@
     "validate-npm-package-name": "2.2.2"
   },
   "engines": {
-    "node": ">= 0.10"
+    "node": ">= 8"
   },
   "files": [
     "LICENSE",
