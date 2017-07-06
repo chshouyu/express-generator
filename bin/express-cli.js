@@ -276,6 +276,7 @@ function createApplication(name, path) {
         'body-parser': '~1.17.1',
         'cookie-parser': '~1.4.3',
         'debug': '~2.6.3',
+        "dotenv": "^4.0.0",
         'express': '~4.15.2',
         'morgan': '~1.8.1',
         'serve-favicon': '~2.4.2'
@@ -344,6 +345,7 @@ function createApplication(name, path) {
     }
 
     copyTemplate('js/nodemon.json', path + '/nodemon.json')
+    copyTemplate('js/env', path + '/.env')
 
     complete()
   })
