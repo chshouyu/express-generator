@@ -270,7 +270,7 @@ function createApplication(name, path) {
       version: '0.0.0',
       private: true,
       scripts: {
-        start: 'node ./bin/www'
+        start: 'nodemon --config nodemon.json ./bin/www'
       },
       dependencies: {
         'body-parser': '~1.17.1',
@@ -279,6 +279,9 @@ function createApplication(name, path) {
         'express': '~4.15.2',
         'morgan': '~1.8.1',
         'serve-favicon': '~2.4.2'
+      },
+      devDependencies: {
+        'nodemon': '^1.11.0'
       }
     }
 
@@ -339,6 +342,8 @@ function createApplication(name, path) {
     if (program.git) {
       copyTemplate('js/gitignore', path + '/.gitignore')
     }
+
+    copyTemplate('js/nodemon.json', path + '/nodemon.json')
 
     complete()
   })
