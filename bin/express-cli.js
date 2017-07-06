@@ -23,18 +23,18 @@ process.exit = exit
 
 // CLI
 
-around(program, 'optionMissingArgument', function (fn, args) {
+around(program, 'optionMissingArgument', function(fn, args) {
   program.outputHelp()
   fn.apply(this, args)
   return { args: [], unknown: [] }
 })
 
-before(program, 'outputHelp', function () {
+before(program, 'outputHelp', function() {
   // track if help was shown for unknown option
   this._helpShown = true
 })
 
-before(program, 'unknownOption', function () {
+before(program, 'unknownOption', function() {
   // allow unknown options if help was shown, to prevent trailing error
   this._allowUnknownOption = this._helpShown
 
@@ -65,10 +65,10 @@ if (!exit.exited) {
  * Install an around function; AOP.
  */
 
-function around (obj, method, fn) {
+function around(obj, method, fn) {
   var old = obj[method]
 
-  obj[method] = function () {
+  obj[method] = function() {
     var args = new Array(arguments.length)
     for (var i = 0; i < args.length; i++) args[i] = arguments[i]
     return fn.call(this, old, args)
@@ -79,10 +79,10 @@ function around (obj, method, fn) {
  * Install a before function; AOP.
  */
 
-function before (obj, method, fn) {
+function before(obj, method, fn) {
   var old = obj[method]
 
-  obj[method] = function () {
+  obj[method] = function() {
     fn.call(this)
     old.apply(this, arguments)
   }
@@ -92,13 +92,13 @@ function before (obj, method, fn) {
  * Prompt for confirmation on STDOUT/STDIN
  */
 
-function confirm (msg, callback) {
+function confirm(msg, callback) {
   var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
 
-  rl.question(msg, function (input) {
+  rl.question(msg, function(input) {
     rl.close()
     callback(/^y|yes|ok|true$/i.test(input))
   })
@@ -108,7 +108,7 @@ function confirm (msg, callback) {
  * Copy file from template directory.
  */
 
-function copyTemplate (from, to) {
+function copyTemplate(from, to) {
   from = path.join(__dirname, '..', 'templates', from)
   write(to, fs.readFileSync(from, 'utf-8'))
 }
@@ -119,11 +119,12 @@ function copyTemplate (from, to) {
  * @param {String} path
  */
 
-function createApplication (name, path) {
+function createApplication(name, path) {
   var wait = 5
 
   console.log()
-  function complete () {
+
+  function complete() {
     if (--wait) return
     var prompt = launchedFromCmd() ? '>' : '$'
 
@@ -153,11 +154,11 @@ function createApplication (name, path) {
   app.locals.modules = Object.create(null)
   app.locals.uses = []
 
-  mkdir(path, function () {
-    mkdir(path + '/public', function () {
+  mkdir(path, function() {
+    mkdir(path + '/public', function() {
       mkdir(path + '/public/javascripts')
       mkdir(path + '/public/images')
-      mkdir(path + '/public/stylesheets', function () {
+      mkdir(path + '/public/stylesheets', function() {
         switch (program.css) {
           case 'less':
             copyTemplate('css/style.less', path + '/public/stylesheets/style.less')
@@ -179,13 +180,13 @@ function createApplication (name, path) {
       })
     })
 
-    mkdir(path + '/routes', function () {
+    mkdir(path + '/routes', function() {
       copyTemplate('js/routes/index.js', path + '/routes/index.js')
       copyTemplate('js/routes/users.js', path + '/routes/users.js')
       complete()
     })
 
-    mkdir(path + '/views', function () {
+    mkdir(path + '/views', function() {
       switch (program.view) {
         case 'dust':
           copyTemplate('dust/index.dust', path + '/views/index.dust')
@@ -331,7 +332,7 @@ function createApplication (name, path) {
     // write files
     write(path + '/package.json', JSON.stringify(pkg, null, 2) + '\n')
     write(path + '/app.js', app.render())
-    mkdir(path + '/bin', function () {
+    mkdir(path + '/bin', function() {
       write(path + '/bin/www', www.render(), MODE_0755)
       complete()
     })
@@ -350,7 +351,7 @@ function createApplication (name, path) {
  * @param {String} pathName
  */
 
-function createAppName (pathName) {
+function createAppName(pathName) {
   return path.basename(pathName)
     .replace(/[^A-Za-z0-9.()!~*'-]+/g, '-')
     .replace(/^[-_.]+|-+$/g, '')
@@ -364,8 +365,8 @@ function createAppName (pathName) {
  * @param {Function} fn
  */
 
-function emptyDirectory (path, fn) {
-  fs.readdir(path, function (err, files) {
+function emptyDirectory(path, fn) {
+  fs.readdir(path, function(err, files) {
     if (err && err.code !== 'ENOENT') throw err
     fn(!files || !files.length)
   })
@@ -375,11 +376,11 @@ function emptyDirectory (path, fn) {
  * Graceful exit for async STDIO
  */
 
-function exit (code) {
+function exit(code) {
   // flush output for Node.js Windows pipe bug
   // https://github.com/joyent/node/issues/6247 is just one bug example
   // https://github.com/visionmedia/mocha/issues/333 has a good discussion
-  function done () {
+  function done() {
     if (!(draining--)) _exit(code)
   }
 
@@ -388,7 +389,7 @@ function exit (code) {
 
   exit.exited = true
 
-  streams.forEach(function (stream) {
+  streams.forEach(function(stream) {
     // submit empty write request and wait for completion
     draining += 1
     stream.write('', done)
@@ -401,7 +402,7 @@ function exit (code) {
  * Determine if launched from cmd.exe
  */
 
-function launchedFromCmd () {
+function launchedFromCmd() {
   return process.platform === 'win32' &&
     process.env._ === undefined
 }
@@ -410,11 +411,11 @@ function launchedFromCmd () {
  * Load template file.
  */
 
-function loadTemplate (name) {
+function loadTemplate(name) {
   var contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
   var locals = Object.create(null)
 
-  function render () {
+  function render() {
     return ejs.render(contents, locals)
   }
 
@@ -428,7 +429,7 @@ function loadTemplate (name) {
  * Main program.
  */
 
-function main () {
+function main() {
   // Path
   var destinationPath = program.args.shift() || '.'
 
@@ -451,11 +452,11 @@ function main () {
   }
 
   // Generate application
-  emptyDirectory(destinationPath, function (empty) {
+  emptyDirectory(destinationPath, function(empty) {
     if (empty || program.force) {
       createApplication(appName, destinationPath)
     } else {
-      confirm('destination is not empty, continue? [y/N] ', function (ok) {
+      confirm('destination is not empty, continue? [y/N] ', function(ok) {
         if (ok) {
           process.stdin.destroy()
           createApplication(appName, destinationPath)
@@ -475,8 +476,8 @@ function main () {
  * @param {Function} fn
  */
 
-function mkdir (path, fn) {
-  mkdirp(path, MODE_0755, function (err) {
+function mkdir(path, fn) {
+  mkdirp(path, MODE_0755, function(err) {
     if (err) throw err
     console.log('   \x1b[36mcreate\x1b[0m : ' + path)
     fn && fn()
@@ -490,8 +491,8 @@ function mkdir (path, fn) {
  * @param {String} newName
  */
 
-function renamedOption (originalName, newName) {
-  return function (val) {
+function renamedOption(originalName, newName) {
+  return function(val) {
     warning(util.format("option `%s' has been renamed to `%s'", originalName, newName))
     return val
   }
@@ -503,9 +504,9 @@ function renamedOption (originalName, newName) {
  * @param {String} message
  */
 
-function warning (message) {
+function warning(message) {
   console.error()
-  message.split('\n').forEach(function (line) {
+  message.split('\n').forEach(function(line) {
     console.error('  warning: %s', line)
   })
   console.error()
@@ -518,7 +519,9 @@ function warning (message) {
  * @param {String} str
  */
 
-function write (path, str, mode) {
-  fs.writeFileSync(path, str, { mode: mode || MODE_0666 })
+function write(path, str, mode) {
+  fs.writeFileSync(path, str, {
+    mode: mode || MODE_0666
+  })
   console.log('   \x1b[36mcreate\x1b[0m : ' + path)
 }
