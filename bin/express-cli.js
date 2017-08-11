@@ -1,48 +1,48 @@
 #!/usr/bin/env node
 
-const ejs = require('ejs')
-const fs = require('fs')
-const mkdirp = require('mkdirp')
-const path = require('path')
-const program = require('commander')
-const readline = require('readline')
-const sortedObject = require('sorted-object')
-const { format } = require('util')
+const ejs = require('ejs');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const path = require('path');
+const program = require('commander');
+const readline = require('readline');
+const sortedObject = require('sorted-object');
+const { format } = require('util');
 
-const MODE_0666 = parseInt('0666', 8)
-const MODE_0755 = parseInt('0755', 8)
+const MODE_0666 = parseInt('0666', 8);
+const MODE_0755 = parseInt('0755', 8);
 
-const _exit = process.exit
-const pkg = require('../package.json')
+const _exit = process.exit;
+const pkg = require('../package.json');
 
-const version = pkg.version
+const version = pkg.version;
 
 // Re-assign process.exit because of commander
 // TODO: Switch to a different command framework
-process.exit = exit
+process.exit = exit;
 
 // CLI
 
 around(program, 'optionMissingArgument', function(fn, args) {
-  program.outputHelp()
-  fn.apply(this, args)
-  return { args: [], unknown: [] }
-})
+  program.outputHelp();
+  fn.apply(this, args);
+  return { args: [], unknown: [] };
+});
 
 before(program, 'outputHelp', function() {
   // track if help was shown for unknown option
-  this._helpShown = true
-})
+  this._helpShown = true;
+});
 
 before(program, 'unknownOption', function() {
   // allow unknown options if help was shown, to prevent trailing error
-  this._allowUnknownOption = this._helpShown
+  this._allowUnknownOption = this._helpShown;
 
   // show help if not yet shown
   if (!this._helpShown) {
-    program.outputHelp()
+    program.outputHelp();
   }
-})
+});
 
 program
   .version(version, '    --version')
@@ -55,10 +55,10 @@ program
   .option('-c, --css <engine>', 'add stylesheet <engine> support (less|stylus|compass|sass) (defaults to plain css)')
   .option('    --git', 'add .gitignore')
   .option('-f, --force', 'force on non-empty directory')
-  .parse(process.argv)
+  .parse(process.argv);
 
 if (!exit.exited) {
-  main()
+  main();
 }
 
 /**
@@ -66,13 +66,13 @@ if (!exit.exited) {
  */
 
 function around(obj, method, fn) {
-  const old = obj[method]
+  const old = obj[method];
 
   obj[method] = function() {
-    const args = new Array(arguments.length)
-    for (let i = 0; i < args.length; i++) args[i] = arguments[i]
-    return fn.call(this, old, args)
-  }
+    const args = new Array(arguments.length);
+    for (let i = 0; i < args.length; i++) args[i] = arguments[i];
+    return fn.call(this, old, args);
+  };
 }
 
 /**
@@ -80,12 +80,12 @@ function around(obj, method, fn) {
  */
 
 function before(obj, method, fn) {
-  const old = obj[method]
+  const old = obj[method];
 
   obj[method] = function() {
-    fn.call(this)
-    old.apply(this, arguments)
-  }
+    fn.call(this);
+    old.apply(this, arguments);
+  };
 }
 
 /**
@@ -96,12 +96,12 @@ function confirm(msg, callback) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
-  })
+  });
 
   rl.question(msg, function(input) {
-    rl.close()
-    callback(/^y|yes|ok|true$/i.test(input))
-  })
+    rl.close();
+    callback(/^y|yes|ok|true$/i.test(input));
+  });
 }
 
 /**
@@ -109,8 +109,8 @@ function confirm(msg, callback) {
  */
 
 function copyTemplate(from, to) {
-  from = path.join(__dirname, '..', 'templates', from)
-  write(to, fs.readFileSync(from, 'utf-8'))
+  from = path.join(__dirname, '..', 'templates', from);
+  write(to, fs.readFileSync(from, 'utf-8'));
 }
 
 /**
@@ -120,148 +120,148 @@ function copyTemplate(from, to) {
  */
 
 function createApplication(name, path) {
-  let wait = 5
+  let wait = 5;
 
-  console.log()
+  console.log();
 
   function complete() {
-    if (--wait) return
-    const prompt = launchedFromCmd() ? '>' : '$'
+    if (--wait) return;
+    const prompt = launchedFromCmd() ? '>' : '$';
 
-    console.log()
-    console.log('   install dependencies:')
-    console.log('     %s cd %s && npm install', prompt, path)
-    console.log()
-    console.log('   run the app:')
+    console.log();
+    console.log('   install dependencies:');
+    console.log('     %s cd %s && npm install', prompt, path);
+    console.log();
+    console.log('   run the app:');
 
     if (launchedFromCmd()) {
-      console.log('     %s SET DEBUG=%s:* & npm start', prompt, name)
+      console.log('     %s SET DEBUG=%s:* & npm start', prompt, name);
     } else {
-      console.log('     %s DEBUG=%s:* npm start', prompt, name)
+      console.log('     %s DEBUG=%s:* npm start', prompt, name);
     }
 
-    console.log()
+    console.log();
   }
 
   // JavaScript
-  const app = loadTemplate('js/app.js')
-  const www = loadTemplate('js/www')
+  const app = loadTemplate('js/app.js');
+  const www = loadTemplate('js/www');
 
   // App name
-  www.locals.name = name
+  www.locals.name = name;
 
   // App modules
-  app.locals.modules = Object.create(null)
-  app.locals.uses = []
+  app.locals.modules = Object.create(null);
+  app.locals.uses = [];
 
   mkdir(path, function() {
     mkdir(path + '/public', function() {
-      mkdir(path + '/public/js')
-      mkdir(path + '/public/img')
+      mkdir(path + '/public/js');
+      mkdir(path + '/public/img');
       mkdir(path + '/public/css', function() {
         switch (program.css) {
-          case 'less':
-            copyTemplate('css/style.less', path + '/public/css/style.less')
-            break
-          case 'stylus':
-            copyTemplate('css/style.styl', path + '/public/css/style.styl')
-            break
-          case 'compass':
-            copyTemplate('css/style.scss', path + '/public/css/style.scss')
-            break
-          case 'sass':
-            copyTemplate('css/style.sass', path + '/public/css/style.sass')
-            break
-          default:
-            copyTemplate('css/style.css', path + '/public/css/style.css')
-            break
+        case 'less':
+          copyTemplate('css/style.less', path + '/public/css/style.less');
+          break;
+        case 'stylus':
+          copyTemplate('css/style.styl', path + '/public/css/style.styl');
+          break;
+        case 'compass':
+          copyTemplate('css/style.scss', path + '/public/css/style.scss');
+          break;
+        case 'sass':
+          copyTemplate('css/style.sass', path + '/public/css/style.sass');
+          break;
+        default:
+          copyTemplate('css/style.css', path + '/public/css/style.css');
+          break;
         }
-        complete()
-      })
-    })
+        complete();
+      });
+    });
 
     mkdir(path + '/routes', function() {
-      copyTemplate('js/routes/index.js', path + '/routes/index.js')
-      complete()
-    })
+      copyTemplate('js/routes/index.js', path + '/routes/index.js');
+      complete();
+    });
 
     mkdir(path + '/views', function() {
       switch (program.view) {
-        case 'dust':
-          copyTemplate('dust/index.dust', path + '/views/index.dust')
-          copyTemplate('dust/error.dust', path + '/views/error.dust')
-          break
-        case 'ejs':
-          copyTemplate('ejs/index.ejs', path + '/views/index.ejs')
-          copyTemplate('ejs/error.ejs', path + '/views/error.ejs')
-          break
-        case 'jade':
-          copyTemplate('jade/index.jade', path + '/views/index.jade')
-          copyTemplate('jade/layout.jade', path + '/views/layout.jade')
-          copyTemplate('jade/error.jade', path + '/views/error.jade')
-          break
-        case 'hjs':
-          copyTemplate('hogan/index.hjs', path + '/views/index.hjs')
-          copyTemplate('hogan/error.hjs', path + '/views/error.hjs')
-          break
-        case 'hbs':
-          copyTemplate('hbs/index.hbs', path + '/views/index.hbs')
-          copyTemplate('hbs/layout.hbs', path + '/views/layout.hbs')
-          copyTemplate('hbs/error.hbs', path + '/views/error.hbs')
-          break
-        case 'pug':
-          copyTemplate('pug/index.pug', path + '/views/index.pug')
-          copyTemplate('pug/layout.pug', path + '/views/layout.pug')
-          copyTemplate('pug/error.pug', path + '/views/error.pug')
-          break
-        case 'twig':
-          copyTemplate('twig/index.twig', path + '/views/index.twig')
-          copyTemplate('twig/layout.twig', path + '/views/layout.twig')
-          copyTemplate('twig/error.twig', path + '/views/error.twig')
-          break
-        case 'vash':
-          copyTemplate('vash/index.vash', path + '/views/index.vash')
-          copyTemplate('vash/layout.vash', path + '/views/layout.vash')
-          copyTemplate('vash/error.vash', path + '/views/error.vash')
-          break
+      case 'dust':
+        copyTemplate('dust/index.dust', path + '/views/index.dust');
+        copyTemplate('dust/error.dust', path + '/views/error.dust');
+        break;
+      case 'ejs':
+        copyTemplate('ejs/index.ejs', path + '/views/index.ejs');
+        copyTemplate('ejs/error.ejs', path + '/views/error.ejs');
+        break;
+      case 'jade':
+        copyTemplate('jade/index.jade', path + '/views/index.jade');
+        copyTemplate('jade/layout.jade', path + '/views/layout.jade');
+        copyTemplate('jade/error.jade', path + '/views/error.jade');
+        break;
+      case 'hjs':
+        copyTemplate('hogan/index.hjs', path + '/views/index.hjs');
+        copyTemplate('hogan/error.hjs', path + '/views/error.hjs');
+        break;
+      case 'hbs':
+        copyTemplate('hbs/index.hbs', path + '/views/index.hbs');
+        copyTemplate('hbs/layout.hbs', path + '/views/layout.hbs');
+        copyTemplate('hbs/error.hbs', path + '/views/error.hbs');
+        break;
+      case 'pug':
+        copyTemplate('pug/index.pug', path + '/views/index.pug');
+        copyTemplate('pug/layout.pug', path + '/views/layout.pug');
+        copyTemplate('pug/error.pug', path + '/views/error.pug');
+        break;
+      case 'twig':
+        copyTemplate('twig/index.twig', path + '/views/index.twig');
+        copyTemplate('twig/layout.twig', path + '/views/layout.twig');
+        copyTemplate('twig/error.twig', path + '/views/error.twig');
+        break;
+      case 'vash':
+        copyTemplate('vash/index.vash', path + '/views/index.vash');
+        copyTemplate('vash/layout.vash', path + '/views/layout.vash');
+        copyTemplate('vash/error.vash', path + '/views/error.vash');
+        break;
       }
-      complete()
-    })
+      complete();
+    });
 
     // CSS Engine support
     switch (program.css) {
-      case 'less':
-        app.locals.modules.lessMiddleware = 'less-middleware'
-        app.locals.uses.push("lessMiddleware(path.join(__dirname, 'public'))")
-        break
-      case 'stylus':
-        app.locals.modules.stylus = 'stylus'
-        app.locals.uses.push("stylus.middleware(path.join(__dirname, 'public'))")
-        break
-      case 'compass':
-        app.locals.modules.compass = 'node-compass'
-        app.locals.uses.push("compass({ mode: 'expanded' })")
-        break
-      case 'sass':
-        app.locals.modules.sassMiddleware = 'node-sass-middleware'
-        app.locals.uses.push("sassMiddleware({\n  src: path.join(__dirname, 'public'),\n  dest: path.join(__dirname, 'public'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})")
-        break
+    case 'less':
+      app.locals.modules.lessMiddleware = 'less-middleware';
+      app.locals.uses.push('lessMiddleware(path.join(__dirname, \'public\'))');
+      break;
+    case 'stylus':
+      app.locals.modules.stylus = 'stylus';
+      app.locals.uses.push('stylus.middleware(path.join(__dirname, \'public\'))');
+      break;
+    case 'compass':
+      app.locals.modules.compass = 'node-compass';
+      app.locals.uses.push('compass({ mode: \'expanded\' })');
+      break;
+    case 'sass':
+      app.locals.modules.sassMiddleware = 'node-sass-middleware';
+      app.locals.uses.push('sassMiddleware({\n  src: path.join(__dirname, \'public\'),\n  dest: path.join(__dirname, \'public\'),\n  indentedSyntax: true, // true = .sass and false = .scss\n  sourceMap: true\n})');
+      break;
     }
 
     // Template support
     switch (program.view) {
-      case 'dust':
-        app.locals.modules.adaro = 'adaro'
-        app.locals.view = {
-          engine: 'dust',
-          render: 'adaro.dust()'
-        }
-        break
-      default:
-        app.locals.view = {
-          engine: program.view
-        }
-        break
+    case 'dust':
+      app.locals.modules.adaro = 'adaro';
+      app.locals.view = {
+        engine: 'dust',
+        render: 'adaro.dust()'
+      };
+      break;
+    default:
+      app.locals.view = {
+        engine: program.view
+      };
+      break;
     }
 
     // package.json
@@ -276,7 +276,7 @@ function createApplication(name, path) {
         'body-parser': '~1.17.1',
         'cookie-parser': '~1.4.3',
         'debug': '~2.6.3',
-        "dotenv": "^4.0.0",
+        'dotenv': '^4.0.0',
         'express': '~4.15.2',
         'morgan': '~1.8.1',
         'serve-favicon': '~2.4.2'
@@ -284,73 +284,73 @@ function createApplication(name, path) {
       devDependencies: {
         'nodemon': '^1.11.0'
       }
-    }
+    };
 
     switch (program.view) {
-      case 'dust':
-        pkg.dependencies.adaro = '~1.0.4'
-        break
-      case 'jade':
-        pkg.dependencies['jade'] = '~1.11.0'
-        break
-      case 'ejs':
-        pkg.dependencies['ejs'] = '~2.5.6'
-        break
-      case 'hjs':
-        pkg.dependencies['hjs'] = '~0.0.6'
-        break
-      case 'hbs':
-        pkg.dependencies['hbs'] = '~4.0.1'
-        break
-      case 'pug':
-        pkg.dependencies['pug'] = '~2.0.0-beta11'
-        break
-      case 'twig':
-        pkg.dependencies['twig'] = '~0.10.3'
-        break
-      case 'vash':
-        pkg.dependencies['vash'] = '~0.12.2'
-        break
+    case 'dust':
+      pkg.dependencies.adaro = '~1.0.4';
+      break;
+    case 'jade':
+      pkg.dependencies['jade'] = '~1.11.0';
+      break;
+    case 'ejs':
+      pkg.dependencies['ejs'] = '~2.5.6';
+      break;
+    case 'hjs':
+      pkg.dependencies['hjs'] = '~0.0.6';
+      break;
+    case 'hbs':
+      pkg.dependencies['hbs'] = '~4.0.1';
+      break;
+    case 'pug':
+      pkg.dependencies['pug'] = '~2.0.0-beta11';
+      break;
+    case 'twig':
+      pkg.dependencies['twig'] = '~0.10.3';
+      break;
+    case 'vash':
+      pkg.dependencies['vash'] = '~0.12.2';
+      break;
     }
 
     // CSS Engine support
     switch (program.css) {
-      case 'less':
-        pkg.dependencies['less-middleware'] = '~2.2.0'
-        break
-      case 'compass':
-        pkg.dependencies['node-compass'] = '0.2.3'
-        break
-      case 'stylus':
-        pkg.dependencies['stylus'] = '0.54.5'
-        break
-      case 'sass':
-        pkg.dependencies['node-sass-middleware'] = '0.9.8'
-        break
+    case 'less':
+      pkg.dependencies['less-middleware'] = '~2.2.0';
+      break;
+    case 'compass':
+      pkg.dependencies['node-compass'] = '0.2.3';
+      break;
+    case 'stylus':
+      pkg.dependencies['stylus'] = '0.54.5';
+      break;
+    case 'sass':
+      pkg.dependencies['node-sass-middleware'] = '0.9.8';
+      break;
     }
 
     // sort dependencies like npm(1)
-    pkg.dependencies = sortedObject(pkg.dependencies)
+    pkg.dependencies = sortedObject(pkg.dependencies);
 
     // write files
-    write(path + '/package.json', JSON.stringify(pkg, null, 2) + '\n')
-    write(path + '/app.js', app.render())
+    write(path + '/package.json', JSON.stringify(pkg, null, 2) + '\n');
+    write(path + '/app.js', app.render());
     mkdir(path + '/bin', function() {
-      write(path + '/bin/www', www.render(), MODE_0755)
-      complete()
-    })
+      write(path + '/bin/www', www.render(), MODE_0755);
+      complete();
+    });
 
     if (program.git) {
-      copyTemplate('js/gitignore', path + '/.gitignore')
+      copyTemplate('js/gitignore', path + '/.gitignore');
     }
 
-    copyTemplate('js/nodemon.json', path + '/nodemon.json')
-    copyTemplate('js/env', path + '/.env')
-    copyTemplate('js/editorconfig', path + '/.editorconfig')
-    copyTemplate('js/nvmrc', path + '/.nvmrc')
+    copyTemplate('js/nodemon.json', path + '/nodemon.json');
+    copyTemplate('js/env', path + '/.env');
+    copyTemplate('js/editorconfig', path + '/.editorconfig');
+    copyTemplate('js/nvmrc', path + '/.nvmrc');
 
-    complete()
-  })
+    complete();
+  });
 }
 
 /**
@@ -363,7 +363,7 @@ function createAppName(pathName) {
   return path.basename(pathName)
     .replace(/[^A-Za-z0-9.()!~*'-]+/g, '-')
     .replace(/^[-_.]+|-+$/g, '')
-    .toLowerCase()
+    .toLowerCase();
 }
 
 /**
@@ -375,9 +375,9 @@ function createAppName(pathName) {
 
 function emptyDirectory(path, fn) {
   fs.readdir(path, function(err, files) {
-    if (err && err.code !== 'ENOENT') throw err
-    fn(!files || !files.length)
-  })
+    if (err && err.code !== 'ENOENT') throw err;
+    fn(!files || !files.length);
+  });
 }
 
 /**
@@ -389,21 +389,21 @@ function exit(code) {
   // https://github.com/joyent/node/issues/6247 is just one bug example
   // https://github.com/visionmedia/mocha/issues/333 has a good discussion
   function done() {
-    if (!(draining--)) _exit(code)
+    if (!(draining--)) _exit(code);
   }
 
-  let draining = 0
-  const streams = [process.stdout, process.stderr]
+  let draining = 0;
+  const streams = [process.stdout, process.stderr];
 
-  exit.exited = true
+  exit.exited = true;
 
   streams.forEach(function(stream) {
     // submit empty write request and wait for completion
-    draining += 1
-    stream.write('', done)
-  })
+    draining += 1;
+    stream.write('', done);
+  });
 
-  done()
+  done();
 }
 
 /**
@@ -412,7 +412,7 @@ function exit(code) {
 
 function launchedFromCmd() {
   return process.platform === 'win32' &&
-    process.env._ === undefined
+    process.env._ === undefined;
 }
 
 /**
@@ -420,17 +420,17 @@ function launchedFromCmd() {
  */
 
 function loadTemplate(name) {
-  const contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8')
-  const locals = Object.create(null)
+  const contents = fs.readFileSync(path.join(__dirname, '..', 'templates', (name + '.ejs')), 'utf-8');
+  const locals = Object.create(null);
 
   function render() {
-    return ejs.render(contents, locals)
+    return ejs.render(contents, locals);
   }
 
   return {
     locals: locals,
     render: render
-  }
+  };
 }
 
 /**
@@ -439,42 +439,42 @@ function loadTemplate(name) {
 
 function main() {
   // Path
-  const destinationPath = program.args.shift() || '.'
+  const destinationPath = program.args.shift() || '.';
 
   // App name
-  const appName = createAppName(path.resolve(destinationPath)) || 'hello-world'
+  const appName = createAppName(path.resolve(destinationPath)) || 'hello-world';
 
   // View engine
   if (program.view === undefined) {
-    if (program.ejs) program.view = 'ejs'
-    if (program.hbs) program.view = 'hbs'
-    if (program.hogan) program.view = 'hjs'
-    if (program.pug) program.view = 'pug'
+    if (program.ejs) program.view = 'ejs';
+    if (program.hbs) program.view = 'hbs';
+    if (program.hogan) program.view = 'hjs';
+    if (program.pug) program.view = 'pug';
   }
 
   // Default view engine
   if (program.view === undefined) {
     warning('the default view engine will not be jade in future releases\n' +
-      "use `--view=jade' or `--help' for additional options")
-    program.view = 'jade'
+      'use `--view=jade\' or `--help\' for additional options');
+    program.view = 'jade';
   }
 
   // Generate application
   emptyDirectory(destinationPath, function(empty) {
     if (empty || program.force) {
-      createApplication(appName, destinationPath)
+      createApplication(appName, destinationPath);
     } else {
       confirm('destination is not empty, continue? [y/N] ', function(ok) {
         if (ok) {
-          process.stdin.destroy()
-          createApplication(appName, destinationPath)
+          process.stdin.destroy();
+          createApplication(appName, destinationPath);
         } else {
-          console.error('aborting')
-          exit(1)
+          console.error('aborting');
+          exit(1);
         }
-      })
+      });
     }
-  })
+  });
 }
 
 /**
@@ -486,10 +486,10 @@ function main() {
 
 function mkdir(path, fn) {
   mkdirp(path, MODE_0755, function(err) {
-    if (err) throw err
-    console.log('   \x1b[36mcreate\x1b[0m : ' + path)
-    fn && fn()
-  })
+    if (err) throw err;
+    console.log('   \x1b[36mcreate\x1b[0m : ' + path);
+    fn && fn();
+  });
 }
 
 /**
@@ -501,9 +501,9 @@ function mkdir(path, fn) {
 
 function renamedOption(originalName, newName) {
   return function(val) {
-    warning(format("option `%s' has been renamed to `%s'", originalName, newName))
-    return val
-  }
+    warning(format('option `%s\' has been renamed to `%s\'', originalName, newName));
+    return val;
+  };
 }
 
 /**
@@ -513,11 +513,11 @@ function renamedOption(originalName, newName) {
  */
 
 function warning(message) {
-  console.error()
+  console.error();
   message.split('\n').forEach(function(line) {
-    console.error('  warning: %s', line)
-  })
-  console.error()
+    console.error('  warning: %s', line);
+  });
+  console.error();
 }
 
 /**
@@ -530,6 +530,6 @@ function warning(message) {
 function write(path, str, mode) {
   fs.writeFileSync(path, str, {
     mode: mode || MODE_0666
-  })
-  console.log('   \x1b[36mcreate\x1b[0m : ' + path)
+  });
+  console.log('   \x1b[36mcreate\x1b[0m : ' + path);
 }
